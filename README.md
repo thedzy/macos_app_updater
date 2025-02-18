@@ -20,6 +20,7 @@ install_from_url.bash _ _ _ https://dl.google.com/chrome/mac/universal/stable/GG
 
 Download by finding a url on page, not nearly as common anymore
 
+Usage:
 ```bash
 install_from_web.bash _ _ _ https://thonny.org/ 'https:[\/A-z0-9\.]+v(\d+\.)+\d+\/thonny-(\d\.)+pkg' -h
 install_from_web.bash <not used> <not used> <not used> <url to download> <regex> <optional: install type dmg,pkg,zip,tar>
