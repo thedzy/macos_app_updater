@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# test.sh
+# install_from_url.bash
 # Author: Shane Young
 # Date: 2022-05-17
 # Revision:	1.1
