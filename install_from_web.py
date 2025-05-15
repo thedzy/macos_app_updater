@@ -144,8 +144,16 @@ def main():
             # Ensure the URL has a full schema (http/https) and domain
             parsed_base: urllib.parse.ParseResult = urlparse(options.url)
             if not urlparse(download_url).scheme:
-                download_url: str = urljoin(f'{parsed_base.scheme}://{parsed_base.netloc}', download_url)
+                if download_url.startswith('/'):
+                    # Absolute path (domain only)
+                    download_url: str = f'{parsed_base.scheme}://{parsed_base.netloc}{download_url}'
+                else:
+                    # Relative path (current directory of base URL)
+                    base_path = parsed_base.path.rsplit('/', 1)[0]  # Remove file name
+                    download_url: str = f'{parsed_base.scheme}://{parsed_base.netloc}{base_path}/{download_url}'
                 logger.info(f'Adjusted download URL: {download_url}')
+
+
 
         except Exception as err:
             logger.error(f'Error fetching page: {err}')
@@ -153,10 +161,12 @@ def main():
     else:
         download_url: str = options.url
 
-    # Download
+    # Download the install/app
     start_time: int = time.time()
     try:
         logger.info(f'Downloading {download_url} ...')
+        installer_file: str = get_filename(download_url)
+        installer_path: Path = Path(temp_folder.name).joinpath(installer_file)
 
         # Create a request for the file download
         req_download = urllib.request.Request(download_url)
@@ -164,10 +174,11 @@ def main():
 
         # Download the file
         with opener.open(req_download) as download_response:
-            # Get  file name from redirect
-            download_url = redirect_handler.final_url if redirect_handler.final_url else download_url
-            installer_file: str = get_filename(download_url)
-            installer_path: Path = Path(temp_folder.name).joinpath(installer_file)
+            # Get  file name from redirect if no extension from the link
+            if Path(installer_file).suffix is None:
+                download_url = redirect_handler.final_url if redirect_handler.final_url else download_url
+                installer_file: str = get_filename(download_url)
+                installer_path: Path = Path(temp_folder.name).joinpath(installer_file)
 
             # Save download
             with open(installer_path, 'wb') as file:
@@ -555,7 +566,17 @@ def install_app(app_path: Path, install_path: Path):
         logger.error(f'Installation failed: {err}')
 
     if options.run:
-        result =  subprocess.run(['open', destination.as_posix()], check=True)
+        result = subprocess.run(
+            ['xattr', '-dr', 'com.apple.quarantine', destination.as_posix()],
+            capture_output=True, text=True
+        )
+
+        if result.returncode == 0:
+            logger.info(f'Cleared quarantine attribute for {destination}')
+        else:
+            logger.warning(f'Failed to clear quarantine: {result.stderr}')
+
+        result = subprocess.run(['open', destination.as_posix()], check=True)
 
         if result.returncode == 0:
             logger.info(f'Launched {destination}')
