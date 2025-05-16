@@ -96,7 +96,7 @@ def main():
         blocked, line = is_app_running(options.blocking_app)
         if blocked:
             logger.warning(f'{options.blocking_app} is believed to be running: {line}')
-            sys.exit(0)
+            return 0
 
     # Folder/files for saved contents
     temp_folder: tempfile.TemporaryDirectory = tempfile.TemporaryDirectory()
@@ -114,8 +114,8 @@ def main():
     ssl_context.load_default_certs()
 
     # Create an opener with redirect handling and SSL context
-    redirect_handler:CustomRedirectHandler = CustomRedirectHandler()
-    opener:urllib.request.OpenerDirector = urllib.request.build_opener(
+    redirect_handler: CustomRedirectHandler = CustomRedirectHandler()
+    opener: urllib.request.OpenerDirector = urllib.request.build_opener(
         redirect_handler,
         urllib.request.HTTPSHandler(context=ssl_context)
     )
@@ -141,7 +141,7 @@ def main():
                 logger.info(f'Found download URL: {download_url}')
             else:
                 logger.error('No matching download URL found.')
-                sys.exit(1)
+                return 1
 
             # Ensure the URL has a full schema (http/https) and domain
             parsed_base: urllib.parse.ParseResult = urlparse(options.url)
@@ -159,7 +159,7 @@ def main():
 
         except Exception as err:
             logger.error(f'Error fetching page: {err}')
-            sys.exit(5)
+            return 5
     else:
         download_url: str = options.url
 
@@ -190,7 +190,7 @@ def main():
 
     except Exception as err:
         logger.critical(err)
-        sys.exit(5)
+        return 5
     finally:
         # Get the time to download (or fail)
         end_time: int = time.time()
@@ -230,8 +230,9 @@ def main():
         file_type: Optional[str] = installer_file.split('.')[-1]
 
     if file_type is None:
-        logger.critical('Unable to get file type from options, mime or extension, use -t, --dmg, --pkg, --tar, or --zip')
-        sys.exit(7)
+        logger.critical(
+            'Unable to get file type from options, mime or extension, use -t, --dmg, --pkg, --tar, or --zip')
+        return 7
 
     logger.info(f'File type is: {file_type}')
 
@@ -244,7 +245,7 @@ def main():
             logger.info(f'TAR unpacked to {unpack_path}')
         except tarfile.ReadError as err:
             logger.critical(err)
-            sys.exit(8)
+            return 8
 
     elif file_type == 'zip':
         try:
@@ -269,14 +270,14 @@ def main():
             logger.info(f'ZIP unpacked to {unpack_path}')
         except zipfile.BadZipFile as err:
             logger.critical(f'Error extracting ZIP: {err}')
-            sys.exit(8)
+            return 8
 
     elif file_type == 'dmg':
         mount_dmg(installer_path, unpack_path)
 
     elif file_type == 'pkg':
         install_pkg(installer_path, unpack_path)
-        sys.exit(0)
+        return 0
 
     # Get the installer/app
     app_path: Path = find_app_path(unpack_path)
@@ -317,12 +318,13 @@ def main():
             install_app(app_path, install_path)
     else:
         logger.critical('No app or pkg found in installer')
-        sys.exit(2)
+        return 2
 
     logger.info('Done')
+    return 0
 
 
-def is_app_running(app_name: str) -> bool:
+def is_app_running(app_name: str) -> (bool, str):
     """
     Checks if the specified app is currently running.
     :param app_name: Name of the app (e.g., 'Terminal')
@@ -425,7 +427,7 @@ def mount_dmg(dmg_path: Path, mount_point: Path):
         logger.info(f'Mounting DMG {dmg_path} at {mount_point}')
         cmd: list[str] = [
             '/usr/bin/hdiutil', 'attach', '-nobrowse',
-            '-acceptlicenses', '-mountpoint',  mount_point.as_posix(),
+            '-mountpoint', mount_point.as_posix(),
             dmg_path.as_posix()
         ]
         logger.debug(' '.join(cmd))
@@ -444,7 +446,7 @@ def mount_dmg(dmg_path: Path, mount_point: Path):
 
     except subprocess.CalledProcessError as err:
         logger.critical(f'Failed to mount DMG. Error: {err.stderr.strip()}')
-        sys.exit(5)
+        return 5
 
 
 def unmount_dmg(mount_point: Path):
@@ -613,7 +615,7 @@ def install_pkg(pkg_path: Path, unpack_path: Path):
         )
     except subprocess.CalledProcessError as err:
         logger.critical(f'Failed to mount DMG. Error: {err.stderr.strip()}')
-        sys.exit(5)
+        return 5
 
     logger.debug(f'PKG unpacked to {pkg_extract_path}')
 
@@ -737,7 +739,8 @@ def install_pkg(pkg_path: Path, unpack_path: Path):
         logger.info('Installing package...')
 
         try:
-            cmd = ['sudo', '/usr/sbin/installer', '-pkg', pkg_path.as_posix(), '-target', options.pkg_install_path.as_posix()]
+            cmd = ['sudo', '/usr/sbin/installer', '-pkg', pkg_path.as_posix(), '-target',
+                   options.pkg_install_path.as_posix()]
             logger.debug(' '.join(cmd))
             result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -750,7 +753,7 @@ def install_pkg(pkg_path: Path, unpack_path: Path):
             logger.error(f'Unexpected error during installation: {e}')
 
 
-def export_system_root_certs() -> Path:
+def export_system_root_certs() -> str:
     """
     Exports macOS system root certificates to a PEM file.
     :return: The path where the PEM file will be.
@@ -758,7 +761,7 @@ def export_system_root_certs() -> Path:
     try:
         logger.debug(f'Get system certs from keychain')
         # Define the command to export certificates
-        cert = tempfile.mktemp()
+        cert: str = tempfile.mktemp()
 
         cmd = [
             'security',
@@ -778,10 +781,11 @@ def export_system_root_certs() -> Path:
             stderr=subprocess.PIPE,
             text=True
         )
-        return cert
+
     except subprocess.CalledProcessError as e:
         logger.critical(f'Error exporting certificates: {e}')
-        sys.exit()
+
+    return cert
 
 
 def create_logger(name: str = __file__, levels: dict = {}) -> logging.Logger:
@@ -890,6 +894,7 @@ if __name__ == '__main__':
             '\t5. Download error\n'
             '\t7. Could not identify file type\n'
             '\t8. could not unpack archive\n'
+            '\t9. errors in one or one runs\n'
         ),
         formatter_class=parser_formatter(argparse.RawTextHelpFormatter,
                                          indent_increment=4, max_help_position=12,
@@ -954,7 +959,8 @@ if __name__ == '__main__':
                                 help='if extracting an app, run it afterwards, use with --reinstall to always open the app')
 
     advanced_group = parser.add_argument_group('advanced options')
-    advanced_group.add_argument('--user-agent', default='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
+    advanced_group.add_argument('--user-agent',
+                                default='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
                                 action='store', dest='user_agent',
                                 help='custom user agent string')
 
@@ -1002,8 +1008,13 @@ if __name__ == '__main__':
 
     # Override settings with json files
     if len(json_files) > 0:
+        logger.debug(f'{len(json_files)} file(s) to process')
+        json_files.sort()
+        exit_code = 0
         # Iterate through each JSON file and load it
         for json_file in json_files:
+            logger.info(80 * '-')
+
             # Load json file
             logger.info(f'Loading file {json_file}')
             try:
@@ -1016,8 +1027,11 @@ if __name__ == '__main__':
                 logger.critical(f'{err}')
                 continue
 
+            title = json_data['name'] if 'name' in json_data else json_file.stem
+            logger.info(title.center(80, '='))
+
             #  Merge into default settings
-            logger.debug(json_data)
+            logger.debug(pprint.pformat(json_data))
             options: argparse.Namespace = argparse.Namespace(**vars(base_options))
             vars(options).update(json_data)
 
@@ -1030,7 +1044,10 @@ if __name__ == '__main__':
             options.pkg_install_path = valid_path(options.pkg_install_path)
 
             # Run installer
-            main()
-            logger.info('=' * 80)
+            return_code = main()
+            if return_code > 0:
+                exit_code = 9
+            logger.info(f'Install exited with {return_code}')
+        sys.exit(exit_code)
     else:
-        main()
+        sys.exit(main())
