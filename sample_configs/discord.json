@@ -1,0 +1,9 @@
+{
+  "url": "https://discord.com/api/download?platform=osx",
+  "regex": null,
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

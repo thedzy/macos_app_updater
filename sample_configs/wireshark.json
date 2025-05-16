@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wireshark.org/download.html",
+  "regex": "[^\"]+Arm%2064.dmg",
+  "file_type": null,
+  "pkg_install_path": "/",
+  "app_install_path": "/Applications",
+  "allow_downgrade": false,
+  "reinstall": false,
+  "run": false,
+  "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
+  "blocking_app": null,
+  "blocking_app_insensitive": false,
+  "log_level": 4,
+  "verbosity": -1,
+  "log_file": null
+}

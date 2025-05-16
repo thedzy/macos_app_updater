@@ -1,0 +1,9 @@
+{
+  "url": "https://desktop.figma.com/mac-arm/Figma.zip",
+  "regex": null,
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

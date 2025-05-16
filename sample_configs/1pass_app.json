@@ -1,0 +1,6 @@
+{
+  "url": "https://downloads.1password.com/mac/1Password.zip",
+  "app_install_path": "/tmp",
+  "reinstall": true,
+  "run": true
+}

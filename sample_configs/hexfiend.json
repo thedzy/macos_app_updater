@@ -1,0 +1,9 @@
+{
+  "url": "https://hexfiend.com/",
+  "regex": "[^\"]+Hex_Fiend_(\\d++\\.)+dmg",
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

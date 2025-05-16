@@ -1,0 +1,9 @@
+{
+  "url": "https://cyberduck.io/download/",
+  "regex": "https://update.cyberduck.io/Cyberduck-[0-9\\.]+.zip",
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": false,
+  "blocking_app": "Cyberduck.app",
+  "blocking_app_insensitive": false
+}

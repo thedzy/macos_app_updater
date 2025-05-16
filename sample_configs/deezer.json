@@ -1,0 +1,9 @@
+{
+  "url": "https://www.deezer.com/desktop/download?platform=darwin&architecture=x64",
+  "regex": null,
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": true,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}
