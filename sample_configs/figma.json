@@ -1,4 +1,5 @@
 {
+  "name":"Figma",
   "url": "https://desktop.figma.com/mac-arm/Figma.zip",
   "regex": null,
   "app_install_path": "/Applications",

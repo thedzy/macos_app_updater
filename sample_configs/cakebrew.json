@@ -1,4 +1,5 @@
 {
+  "name":"CakeBrew",
   "url": "https://www.cakebrew.com/",
   "regex": "https://cakebrew-377a.kxcdn.com/cakebrew-(\\d+\\.)+zi",
   "reinstall": false,

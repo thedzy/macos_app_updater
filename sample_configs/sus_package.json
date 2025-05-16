@@ -1,4 +1,5 @@
 {
+  "name":"Suspicious Package",
   "url": "https://mothersruin.com/software/downloads/SuspiciousPackage.dmg",
   "regex": null,
   "app_install_path": "/Applications",

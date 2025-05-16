@@ -1,4 +1,5 @@
 {
+  "name":"Brave Browser",
   "url": "https://referrals.brave.com/latest/BRV010/Brave-Browser.dmg",
   "regex": null,
   "app_install_path": "/Applications",

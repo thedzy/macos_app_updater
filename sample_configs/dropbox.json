@@ -1,6 +1,8 @@
 {
+  "name":"DropBox",
   "url": "https://www.dropbox.com/download?os=mac&plat=mac",
   "regex": null,
+  "file_type": "dmg",
   "app_install_path": "/Applications",
   "reinstall": false,
   "run": false,

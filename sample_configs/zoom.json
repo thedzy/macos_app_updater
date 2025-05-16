@@ -1,4 +1,5 @@
 {
+  "name":"Zoom",
   "url": "https://zoom.us/client/6.4.6.53970/zoomusInstallerFull.pkg?archType=arm64",
   "blocking_app": "Zoom.app"
 }

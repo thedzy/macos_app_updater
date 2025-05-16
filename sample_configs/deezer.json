@@ -1,4 +1,5 @@
 {
+  "name":"Deezer",
   "url": "https://www.deezer.com/desktop/download?platform=darwin&architecture=x64",
   "regex": null,
   "app_install_path": "/Applications",

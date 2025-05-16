@@ -1,4 +1,5 @@
 {
+  "name":"goLang",
   "url": "https://go.dev/dl/",
   "regex": "[^\"]+go\\d+\\.\\d+\\.\\d+\\.darwin-arm64.pkg",
   "blocking_app": "Zoom.app"

@@ -1,4 +1,5 @@
 {
+  "name":"1 Password package install",
   "url": "https://downloads.1password.com/mac/1Password.pkg",
   "regex": null,
   "reinstall": false,

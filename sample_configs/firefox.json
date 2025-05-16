@@ -1,4 +1,5 @@
 {
+  "name":"FireFox",
   "url": "https://download.mozilla.org/?product=firefox-latest-ssl&os=osx&lang=en-US",
   "regex": null,
   "app_install_path": "/Applications",

@@ -1,4 +1,5 @@
 {
+  "name":"ChatGPT",
   "url": "https://persistent.oaistatic.com/sidekick/public/ChatGPT_Desktop_public_latest.dmg",
   "regex": null,
   "reinstall": false,

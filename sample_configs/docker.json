@@ -1,4 +1,5 @@
 {
+  "name":"Docker",
   "url": "https://desktop.docker.com/mac/stable/arm64/Docker.dmg",
   "regex": null,
   "reinstall": false,

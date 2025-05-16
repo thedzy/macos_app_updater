@@ -1,4 +1,5 @@
 {
+  "name":"UTM",
   "url": "https://github.com/utmapp/UTM/releases/latest/download/UTM.dmg",
   "regex": null,
   "reinstall": false,

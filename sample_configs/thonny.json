@@ -1,4 +1,5 @@
 {
+  "name":"Thonny",
   "url": "https://thonny.org/",
   "regex": "https:[\\/A-z0-9\\.]+v(\\d+\\.)+\\d+\/thonny-(\\d\\.)+pkg",
   "app_install_path": "/Applications",

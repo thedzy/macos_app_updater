@@ -1,4 +1,5 @@
 {
+  "name":"BBEdit",
   "url": "https://www.barebones.com/products/bbedit/download.html",
   "regex": "[^\"]+BBEdit_(\\d+\\.)+dmg",
   "app_install_path": "/Applications",

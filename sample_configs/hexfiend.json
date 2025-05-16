@@ -1,4 +1,5 @@
 {
+  "name":"Hex Fiend",
   "url": "https://hexfiend.com/",
   "regex": "[^\"]+Hex_Fiend_(\\d++\\.)+dmg",
   "app_install_path": "/Applications",
