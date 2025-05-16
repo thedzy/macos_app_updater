@@ -11,11 +11,12 @@ __date__ = '2025-05-12'
 __description__ = \
     """
     install_from_web.py: 
-    
+    Install applications directly from the web
     """
 
 import argparse
 import atexit
+import json
 import logging.config
 import mimetypes
 import os
@@ -25,6 +26,7 @@ import re
 import shutil
 import ssl
 import subprocess
+import sys
 import tarfile
 import tempfile
 import time
@@ -33,7 +35,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 from typing import Optional, Any
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse
 
 from packaging import version
 
@@ -94,7 +96,7 @@ def main():
         blocked, line = is_app_running(options.blocking_app)
         if blocked:
             logger.warning(f'{options.blocking_app} is believed to be running: {line}')
-            exit(0)
+            sys.exit(0)
 
     # Folder/files for saved contents
     temp_folder: tempfile.TemporaryDirectory = tempfile.TemporaryDirectory()
@@ -112,8 +114,8 @@ def main():
     ssl_context.load_default_certs()
 
     # Create an opener with redirect handling and SSL context
-    redirect_handler = CustomRedirectHandler()
-    opener = urllib.request.build_opener(
+    redirect_handler:CustomRedirectHandler = CustomRedirectHandler()
+    opener:urllib.request.OpenerDirector = urllib.request.build_opener(
         redirect_handler,
         urllib.request.HTTPSHandler(context=ssl_context)
     )
@@ -139,7 +141,7 @@ def main():
                 logger.info(f'Found download URL: {download_url}')
             else:
                 logger.error('No matching download URL found.')
-                exit(1)
+                sys.exit(1)
 
             # Ensure the URL has a full schema (http/https) and domain
             parsed_base: urllib.parse.ParseResult = urlparse(options.url)
@@ -157,7 +159,7 @@ def main():
 
         except Exception as err:
             logger.error(f'Error fetching page: {err}')
-            exit(5)
+            sys.exit(5)
     else:
         download_url: str = options.url
 
@@ -188,7 +190,7 @@ def main():
 
     except Exception as err:
         logger.critical(err)
-        exit(5)
+        sys.exit(5)
     finally:
         # Get the time to download (or fail)
         end_time: int = time.time()
@@ -229,7 +231,7 @@ def main():
 
     if file_type is None:
         logger.critical('Unable to get file type from options, mime or extension, use -t, --dmg, --pkg, --tar, or --zip')
-        exit(7)
+        sys.exit(7)
 
     logger.info(f'File type is: {file_type}')
 
@@ -242,7 +244,7 @@ def main():
             logger.info(f'TAR unpacked to {unpack_path}')
         except tarfile.ReadError as err:
             logger.critical(err)
-            exit(8)
+            sys.exit(8)
 
     elif file_type == 'zip':
         try:
@@ -267,14 +269,14 @@ def main():
             logger.info(f'ZIP unpacked to {unpack_path}')
         except zipfile.BadZipFile as err:
             logger.critical(f'Error extracting ZIP: {err}')
-            exit(8)
+            sys.exit(8)
 
     elif file_type == 'dmg':
         mount_dmg(installer_path, unpack_path)
 
     elif file_type == 'pkg':
         install_pkg(installer_path, unpack_path)
-        exit(0)
+        sys.exit(0)
 
     # Get the installer/app
     app_path: Path = find_app_path(unpack_path)
@@ -315,7 +317,7 @@ def main():
             install_app(app_path, install_path)
     else:
         logger.critical('No app or pkg found in installer')
-        exit(2)
+        sys.exit(2)
 
     logger.info('Done')
 
@@ -423,7 +425,7 @@ def mount_dmg(dmg_path: Path, mount_point: Path):
         logger.info(f'Mounting DMG {dmg_path} at {mount_point}')
         cmd: list[str] = [
             '/usr/bin/hdiutil', 'attach', '-nobrowse',
-            '-mountpoint', mount_point.as_posix(),
+            '-acceptlicenses', '-mountpoint',  mount_point.as_posix(),
             dmg_path.as_posix()
         ]
         logger.debug(' '.join(cmd))
@@ -442,7 +444,7 @@ def mount_dmg(dmg_path: Path, mount_point: Path):
 
     except subprocess.CalledProcessError as err:
         logger.critical(f'Failed to mount DMG. Error: {err.stderr.strip()}')
-        exit(5)
+        sys.exit(5)
 
 
 def unmount_dmg(mount_point: Path):
@@ -593,6 +595,11 @@ def install_pkg(pkg_path: Path, unpack_path: Path):
     logger.info(f'Unpacking PKG {pkg_path.name} ...')
     pkg_extract_path = unpack_path.parent.joinpath('pkg_extract')
 
+    # Add pkg just in case its not there, installer will only install with a pkg extension
+    if pkg_path.suffix != '.pkg':
+        logger.info('Adding pkg extension for installer compatibility')
+        pkg_path = pkg_path.with_suffix('.pkg')
+
     # Extract
     cmd = ['/usr/sbin/pkgutil', '--expand', pkg_path.as_posix(), pkg_extract_path.as_posix()]
     logger.debug(' '.join(cmd))
@@ -606,7 +613,7 @@ def install_pkg(pkg_path: Path, unpack_path: Path):
         )
     except subprocess.CalledProcessError as err:
         logger.critical(f'Failed to mount DMG. Error: {err.stderr.strip()}')
-        exit(5)
+        sys.exit(5)
 
     logger.debug(f'PKG unpacked to {pkg_extract_path}')
 
@@ -774,7 +781,7 @@ def export_system_root_certs() -> Path:
         return cert
     except subprocess.CalledProcessError as e:
         logger.critical(f'Error exporting certificates: {e}')
-        exit()
+        sys.exit()
 
 
 def create_logger(name: str = __file__, levels: dict = {}) -> logging.Logger:
@@ -860,11 +867,21 @@ if __name__ == '__main__':
             return format_class
 
 
+    # Detect if running as a PyInstaller bundled executable
+    if getattr(sys, 'frozen', False):
+        # Running as a PyInstaller bundled executable
+        executable_directory = Path(sys.executable).parent
+    else:
+        # Running as a normal Python script
+        executable_directory = Path(__file__).parent
+    json_files: list = list(executable_directory.glob("*.json"))
+
     # Create argument parser
     parser = argparse.ArgumentParser(
         description=__description__,
         epilog=(
             'Footnotes:\n'
+            'If there are .json files in the same directory, each one will be processed and any options provided will the the default settings.\n'
             'Its not highly discouraged not to change the install path of the pkg installers\n'
             'Being vague on blocking apps will result in your install being blocked unnecessarily\n'
             'Error codes:\n'
@@ -882,7 +899,7 @@ if __name__ == '__main__':
     basics_group = parser.add_argument_group('basic options')
     basics_group.add_argument('-u', '--url',
                               action='store', dest='url',
-                              required=True,
+                              required=len(json_files) == 0,
                               help='url to page/download')
 
     # Use a regex
@@ -977,9 +994,43 @@ if __name__ == '__main__':
                         help=argparse.SUPPRESS)
 
     options = parser.parse_args()
+    base_options: argparse.Namespace = argparse.Namespace(**vars(options))
 
     logger = create_logger()
     logger.debug('Debug ON')
     logger.debug(pprint.pformat(options))
 
-    main()
+    # Override settings with json files
+    if len(json_files) > 0:
+        # Iterate through each JSON file and load it
+        for json_file in json_files:
+            # Load json file
+            logger.info(f'Loading file {json_file}')
+            try:
+                with open(json_file, 'r') as f:
+                    json_data = json.load(f)
+            except json.decoder.JSONDecodeError as err:
+                logger.critical(f'Error reading json file {err}')
+                continue
+            except PermissionError as err:
+                logger.critical(f'{err}')
+                continue
+
+            #  Merge into default settings
+            logger.debug(json_data)
+            options: argparse.Namespace = argparse.Namespace(**vars(base_options))
+            vars(options).update(json_data)
+
+            # Validate/parse fields
+            if options.url is None:
+                logger.critical(f'url is a required field in install.json')
+                continue
+            # Validate paths
+            options.app_install_path = valid_path(options.app_install_path)
+            options.pkg_install_path = valid_path(options.pkg_install_path)
+
+            # Run installer
+            main()
+            logger.info('=' * 80)
+    else:
+        main()
