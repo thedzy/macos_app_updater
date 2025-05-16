@@ -90,12 +90,24 @@ class CustomRedirectHandler(urllib.request.HTTPRedirectHandler):
 def main():
     logger.info('Start')
 
+    parsed_json_url = urlparse(options.url)
+    if not all([parsed_json_url.scheme, parsed_json_url.netloc]):
+        logger.critical(f'url "{options.url}" does not appear to be valid')
+        return 3
+
     # Check if we are blocking
     if options.blocking_app is not None:
         # Check if app is blocking
         blocked, line = is_app_running(options.blocking_app)
         if blocked:
-            logger.warning(f'{options.blocking_app} is believed to be running: {line}')
+            logger.warning(f'App "{options.blocking_app}" is believed to be running: {line}')
+            return 0
+    if options.blocking_file is not None:
+        # Check if app is blocking
+        blocking_file_path: Path = Path(options.blocking_file)
+        if blocking_file_path.exists():
+            blocking_file_type: str = 'file' if blocking_file_path.is_file() else 'directory'
+            logger.warning(f'"{options.blocking_file}" is a {blocking_file_type} and the install/update will not run')
             return 0
 
     # Folder/files for saved contents
@@ -164,7 +176,12 @@ def main():
         download_url: str = options.url
 
     # Download the install/app
-    start_time: int = time.time()
+    parsed_json_url = urlparse(download_url)
+    if not all([parsed_json_url.scheme, parsed_json_url.netloc]):
+        logger.critical(f'url "{download_url}" does not appear to be valid')
+        return 3
+
+    start_time: float = time.time()
     try:
         logger.info(f'Downloading {download_url} ...')
         installer_file: str = get_filename(download_url)
@@ -193,15 +210,15 @@ def main():
         return 5
     finally:
         # Get the time to download (or fail)
-        end_time: int = time.time()
+        end_time: float = time.time()
         minutes, seconds = divmod((end_time - start_time), 60)
         hours, minutes = divmod(minutes, 60)
         logger.info(f'Run time: {hours:02.0f}:{minutes:02.0f}:{seconds:04.1f}')
 
     # Get file type
-    if options.file_type:
-        logger.info('Using provided file type')
+    if options.file_type is not None:
         file_type: Optional[str] = options.file_type
+        logger.info(f'Using provided file type: {file_type}')
     else:
         logger.info('Getting file type from mime types')
         mime_type, _ = mimetypes.guess_type(installer_file)
@@ -282,10 +299,7 @@ def main():
     # Get the installer/app
     app_path: Path = find_app_path(unpack_path)
     pkg_path: Path = find_app_path(unpack_path, '*.pkg', False)
-    if pkg_path is not None:
-        logger.info(f'Installing {pkg_path} to {options.pkg_install_path}')
-        install_pkg(pkg_path, unpack_path)
-    elif app_path is not None:
+    if app_path is not None:
         install_path = options.app_install_path
         logger.info(f'Copying /{app_path.name} to {install_path}')
 
@@ -316,6 +330,10 @@ def main():
         if install:
             logger.info('Installing!')
             install_app(app_path, install_path)
+
+    elif pkg_path is not None:
+        logger.info(f'Installing {pkg_path} to {options.pkg_install_path}')
+        install_pkg(pkg_path, unpack_path)
     else:
         logger.critical('No app or pkg found in installer')
         return 2
@@ -332,7 +350,7 @@ def is_app_running(app_name: str) -> (bool, str):
     """
     try:
         # Run the 'ps aux' command to list all running processes
-        result = subprocess.run(['ps', '-axo', 'comm'], capture_output=True, text=True)
+        result = subprocess.run(['ps', '-axo', 'pid comm'], capture_output=True, text=True)
 
         # Check if any line contains the app name
         for line in result.stdout.splitlines():
@@ -520,28 +538,19 @@ def install_app(app_path: Path, install_path: Path):
     :param install_path: Path where the .app should be installed
     """
     logger.info(f'Copying {app_path.name} to {install_path}')
+    destination = install_path / app_path.name
 
     try:
-        destination = install_path / app_path.name
+        logger.debug(f'Using copy method: {options.copy_method}')
+
         if options.copy_method == 'shutil':
+
             if destination.exists():
                 logger.info(f'Removing existing installation at {destination}')
                 shutil.rmtree(destination)
 
             shutil.copytree(app_path, destination, copy_function=shutil.copy2, dirs_exist_ok=True)
-        elif options.copy_method == 'ditto':
-            if destination.exists():
-                logger.info(f'Removing existing installation at {destination}')
-                shutil.rmtree(destination)
 
-            cmd = [
-                'ditto',
-                app_path.as_posix(),
-                destination.as_posix()
-            ]
-            logger.debug(' '.join(cmd))
-
-            result = subprocess.run(cmd, text=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         elif options.copy_method == 'cp':
             if destination.exists():
                 logger.info(f'Removing existing installation at {destination}')
@@ -555,6 +564,7 @@ def install_app(app_path: Path, install_path: Path):
             logger.debug(' '.join(cmd))
 
             result = subprocess.run(cmd, text=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            logger.debug(result)
 
         elif options.copy_method == 'rsync':
             cmd = [
@@ -565,6 +575,22 @@ def install_app(app_path: Path, install_path: Path):
             logger.debug(' '.join(cmd))
 
             result = subprocess.run(cmd, text=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            logger.debug(result)
+
+        else: # ditto
+            if destination.exists():
+                logger.info(f'Removing existing installation at {destination}')
+                shutil.rmtree(destination)
+
+            cmd = [
+                'ditto',
+                app_path.as_posix(),
+                destination.as_posix()
+            ]
+            logger.debug(' '.join(cmd))
+
+            result = subprocess.run(cmd, text=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            logger.debug(result)
         logger.info('Installation complete.')
     except Exception as err:
         logger.error(f'Installation failed: {err}')
@@ -891,6 +917,7 @@ if __name__ == '__main__':
             'Error codes:\n'
             '\t1. Unexpected error\n'
             '\t2. Nothing to install\n'
+            '\t3. Invalid url\n'
             '\t5. Download error\n'
             '\t7. Could not identify file type\n'
             '\t8. could not unpack archive\n'
@@ -964,14 +991,18 @@ if __name__ == '__main__':
                                 action='store', dest='user_agent',
                                 help='custom user agent string')
 
-    # blocking app
-    extended_group.add_argument('-b', '--blocking', default=None,
+    # blocking app/file
+    extended_group.add_argument('-b', '--blocking-app', default=None,
                                 action='store', dest='blocking_app',
                                 help='do not install if this app can be found running\n'
                                      'Example: "/Applications/My Easy Finder.app/Contents/MacOS/My Easy Finder" \n'
                                      '         This will be blocked if specifying "app", "Finder" or "MacOS"\n'
                                      '         Use: "My Easy Finder.app"'
                                 )
+
+    extended_group.add_argument('-B', '--blocking-file', default=None,
+                                action='store', dest='blocking_file',
+                                help='do not install if this file/directory exists')
 
     extended_group.add_argument('-i', '--blocking-case-insensitive', default=False,
                                 action='store_true', dest='blocking_app_insensitive',
@@ -1027,7 +1058,48 @@ if __name__ == '__main__':
                 logger.critical(f'{err}')
                 continue
 
-            title = json_data['name'] if 'name' in json_data else json_file.stem
+            # Validate/parse fields
+            if json_data['url'] is None:
+                logger.critical(f'url is a required field in {json_file.stem}')
+                continue
+
+            json_types = {
+                "name": str,
+                "url": str,
+                "regex": str,
+                "file_type": str,
+                "pkg_install_path": Path,
+                "app_install_path": Path,
+                "allow_downgrade": bool,
+                "reinstall": bool,
+                "run": bool,
+                "user_agent": str,
+                "blocking_app": str,
+                "blocking_file": str,
+                "blocking_app_insensitive": str,
+                "log_level": int,
+                "verbosity": int,
+                "log_file": str
+            }
+
+            # Correcting types in json_data directly
+            for key, value in json_data.items():
+                if value is None:
+                    continue
+                expected_type = json_types.get(key)
+                if expected_type:
+                    try:
+                        # Special case for booleans (since bool("False") is True)
+                        if expected_type is bool:
+                            if isinstance(value, str):
+                                value = value.lower()
+                            json_data[key] = value in ('true', '1', 1, 'yes')
+                        else:
+                            json_data[key] = expected_type(value)
+                    except (ValueError, TypeError) as err:
+                        print(f"Warning: Unable to cast {key} ({value}) to {expected_type.__name__}. Error: {err}")
+
+            title = str(json_data['name']) if 'name' in json_data else json_file.stem
             logger.info(title.center(80, '='))
 
             #  Merge into default settings
@@ -1035,19 +1107,12 @@ if __name__ == '__main__':
             options: argparse.Namespace = argparse.Namespace(**vars(base_options))
             vars(options).update(json_data)
 
-            # Validate/parse fields
-            if options.url is None:
-                logger.critical(f'url is a required field in install.json')
-                continue
-            # Validate paths
-            options.app_install_path = valid_path(options.app_install_path)
-            options.pkg_install_path = valid_path(options.pkg_install_path)
-
             # Run installer
             return_code = main()
             if return_code > 0:
                 exit_code = 9
             logger.info(f'Install exited with {return_code}')
+        logger.info(80 * '-')
         sys.exit(exit_code)
     else:
         sys.exit(main())
