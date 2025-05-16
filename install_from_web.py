@@ -93,7 +93,7 @@ def main():
     parsed_json_url = urlparse(options.url)
     if not all([parsed_json_url.scheme, parsed_json_url.netloc]):
         logger.critical(f'url "{options.url}" does not appear to be valid')
-        return 3
+        return 4
 
     # Check if we are blocking
     if options.blocking_app is not None:
@@ -179,7 +179,7 @@ def main():
     parsed_json_url = urlparse(download_url)
     if not all([parsed_json_url.scheme, parsed_json_url.netloc]):
         logger.critical(f'url "{download_url}" does not appear to be valid')
-        return 3
+        return 4
 
     start_time: float = time.time()
     try:
@@ -904,7 +904,12 @@ if __name__ == '__main__':
     else:
         # Running as a normal Python script
         executable_directory = Path(__file__).parent
-    json_files: list = list(executable_directory.glob("*.json"))
+
+    json_files: list = list(executable_directory.glob('*.json'))
+    # When in an app, check the resources
+    if executable_directory.parent.joinpath('Resources').is_dir():
+        logging.info('Getting resource files')
+        json_files.extend(list(executable_directory.parent.joinpath('Resources').glob('*.json')))
 
     # Create argument parser
     parser = argparse.ArgumentParser(
@@ -918,7 +923,7 @@ if __name__ == '__main__':
             '\t1. Unexpected error\n'
             '\t2. Nothing to install\n'
             '\t3. Invalid url\n'
-            '\t5. Download error\n'
+            '\t4. Download error\n'
             '\t7. Could not identify file type\n'
             '\t8. could not unpack archive\n'
             '\t9. errors in one or one runs\n'
@@ -1064,25 +1069,25 @@ if __name__ == '__main__':
                 continue
 
             json_types = {
-                "name": str,
-                "url": str,
-                "regex": str,
-                "file_type": str,
-                "pkg_install_path": Path,
-                "app_install_path": Path,
-                "allow_downgrade": bool,
-                "reinstall": bool,
-                "run": bool,
-                "user_agent": str,
-                "blocking_app": str,
-                "blocking_file": str,
-                "blocking_app_insensitive": str,
-                "log_level": int,
-                "verbosity": int,
-                "log_file": str
+                'name': str,
+                'url': str,
+                'regex': str,
+                'file_type': str,
+                'pkg_install_path': Path,
+                'app_install_path': Path,
+                'allow_downgrade': bool,
+                'reinstall': bool,
+                'run': bool,
+                'user_agent': str,
+                'blocking_app': str,
+                'blocking_file': str,
+                'blocking_app_insensitive': str,
+                'log_level': int,
+                'verbosity': int,
+                'log_file': str
             }
 
-            # Correcting types in json_data directly
+            # Correcting types in json_data (type casting)
             for key, value in json_data.items():
                 if value is None:
                     continue
@@ -1097,7 +1102,11 @@ if __name__ == '__main__':
                         else:
                             json_data[key] = expected_type(value)
                     except (ValueError, TypeError) as err:
-                        print(f"Warning: Unable to cast {key} ({value}) to {expected_type.__name__}. Error: {err}")
+                        print(f'Warning: Unable to cast {key} ({value}) to {expected_type.__name__}. Error: {err}')
+
+            # Recreate the logger now that we have all the options parsed
+            logger = create_logger()
+            logger.debug('Debug ON')
 
             title = str(json_data['name']) if 'name' in json_data else json_file.stem
             logger.info(title.center(80, '='))
