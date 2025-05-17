@@ -906,7 +906,7 @@ if __name__ == '__main__':
         executable_directory = Path(__file__).parent
 
     json_files: list = list(executable_directory.glob('*.json'))
-    # When in an app, check the resources
+    # When in an app, check the resources folder
     if executable_directory.parent.joinpath('Resources').is_dir():
         logging.info('Getting resource files')
         json_files.extend(list(executable_directory.parent.joinpath('Resources').glob('*.json')))
