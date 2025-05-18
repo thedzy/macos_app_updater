@@ -1,6 +1,6 @@
 {
   "name":"Deezer",
-  "url": "https://www.deezer.com/desktop/download?platform=darwin&architecture=x64",
+  "url": "https://www.deezer.com/desktop/download?platform=darwin&architecture=x64&platformVersion=10.15",
   "regex": null,
   "app_install_path": "/Applications",
   "reinstall": false,
