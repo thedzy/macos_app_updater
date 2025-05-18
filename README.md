@@ -4,32 +4,34 @@ Script to download an app/pkg/dmg/tar/zip, unpack and determine if it needs to b
 
 ```install_from_web```
 
-Download from a parma link or lind the link on a page
+Download from a parma link or lind the link on a page.  Install ONLY if it is missing or requires an update.
 
 Usage:
 
-```bash
+```console
 % python3 install_from_web.py -h
-usage: install_from_web.py [-h] -u URL [-r REGEX] [-t {pkg,tar,zip,dmg} | --pkg | --tar | --zip | --dmg] [--pkg-path PKG_INSTALL_PATH]
-                           [--app-path APP_INSTALL_PATH] [--allow-downgrade] [--reinstall] [--run] [--user-agent USER_AGENT] [-b BLOCKING_APP] [-i] [-v]
-                           [--log LOG_FILE]
+usage: install_from_web.py [-h] -u URL [-r REGEX | -c CODE] [-t {pkg,tar,zip,dmg} | --pkg | --tar | --zip | --dmg] [--pkg-path PKG_INSTALL_PATH]
+                           [--app-path APP_INSTALL_PATH] [--allow-downgrade] [--reinstall] [--run] [--user-agent USER_AGENT] [-b BLOCKING_APP]
+                           [-B BLOCKING_FILE] [-R REQUIRED_FILE] [-i] [-v] [--log LOG_FILE]
 
-    install_from_web.py:
+    install_from_web.py: 
     Install applications directly from the web
-
+    
 
 options:
     -h, --help
             show this help message and exit
 
 basic options:
-    -u, --url URL
+    -u URL, --url URL
             url to page/download
-    -r, --regex REGEX
+    -r REGEX, --regex REGEX
             regex for the the download url from --url (optional)
+    -c CODE, --code CODE
+            pipe the html from --url into this code (optional)
 
 install type:
-    -t, --type {pkg,tar,zip,dmg}
+    -t {pkg,tar,zip,dmg}, --type {pkg,tar,zip,dmg}
             specify the download type
             default: auto detect
     --pkg   specify that the download type is pkg
@@ -39,11 +41,11 @@ install type:
 
 install destinations:
     --pkg-path PKG_INSTALL_PATH
-            specify the pkg install location
-            Not recommended
+            specify the pkg install location 
+            Not recommended 
             default: /
     --app-path APP_INSTALL_PATH
-            specify the app install location
+            specify the app install location 
             default: /Applications
 
 extended options:
@@ -52,11 +54,15 @@ extended options:
     --reinstall
             reinstall regardless of versions
     --run   if extracting an app, run it afterwards, use with --reinstall to always open the app
-    -b, --blocking BLOCKING_APP
+    -b BLOCKING_APP, --blocking-app BLOCKING_APP
             do not install if this app can be found running
-            Example: "/Applications/My Easy Finder.app/Contents/MacOS/My Easy Finder"
+            Example: "/Applications/My Easy Finder.app/Contents/MacOS/My Easy Finder" 
                      This will be blocked if specifying "app", "Finder" or "MacOS"
                      Use: "My Easy Finder.app"
+    -B BLOCKING_FILE, --blocking-file BLOCKING_FILE
+            do not install if this file/directory exists
+    -R REQUIRED_FILE, --required-file REQUIRED_FILE
+            only install if this file/directory exists
     -i, --blocking-case-insensitive
             allow the blocking app to match any case
 
@@ -76,9 +82,12 @@ Being vague on blocking apps will result in your install being blocked unnecessa
 Error codes:
 	1. Unexpected error
 	2. Nothing to install
-	5. Download error
+	3. Invalid url
+	4. Download error
 	7. Could not identify file type
 	8. could not unpack archive
+	9. errors in one or one runs
+
 ```
 
 Examples:
@@ -95,6 +104,9 @@ install_from_web.py --url "https://www.audacityteam.org/download/mac/" --regex "
 
 # BBedit
 install_from_web.py --url 'https://www.barebones.com/products/bbedit/download.html'  --regex '[^"]+BBEdit_(\d+\.)+dmg'
+
+# Blender
+install_from_web.py --url 'https://www.blender.org/download/' --code 'egrep -o "https://www.blender.org/download/release/Blender4.4/blender-(\d+\.)+\d+-macos-arm64.dmg" | tail -n 1 | sed "s:www.blender.org/download:mirrors.iu13.net/blender:g"'
 
 # Brave
 install_from_web.py --url 'https://referrals.brave.com/latest/BRV010/Brave-Browser.dmg'
@@ -127,7 +139,9 @@ install_from_web.py --url 'https://dl.google.com/drive-file-stream/GoogleDrive.d
 install_from_web.py --url 'https://hexfiend.com/' --regex '[^"]+Hex_Fiend_(\d++\.)+dmg'
 
 # Nodejs
-install_from_web.py --url 'https://www.dropbox.com/download?os=mac&plat=mac' --regex "/dist/latest/node-v(\d++\.)+.pkg"
+install_from_web.py --url 'https://nodejs.org/dist/latest/' --regex '/dist/latest/node-v(\d+\.)+pkg'
+# Nodejs (Exactly the same as above)
+install_from_web.py --url 'https://nodejs.org/dist/latest/' --code 'egrep -o "/dist/latest/node-v(\d+\.)+pkg"'
 
 # Spotify
 install_from_web.py --url 'https://download.scdn.co/SpotifyInstaller.zip'
@@ -154,9 +168,14 @@ install_from_web.py --url 'https://www.wireshark.org/download.html' --regex '[^"
 install_from_web.py --url 'https://zoom.us/client/6.4.6.53970/zoomusInstallerFull.pkg?archType=arm64'
 
 ```
-# Build python independent executable
+## Build python independent executable, can include multiple config for updating and installing
 ```
-pyinstaller --onefile --hidden-import packaging install_from_web.py
+pyinstaller -y /Users/syoung/git/macos_app_updater/installer_bin.spec
+```
+
+## Build python independent app that includes, can include multiple config for updating and installing
+```
+pyinstaller -y /Users/syoung/git/macos_app_updater/installer_app.spec
 ```
 
 
