@@ -1,0 +1,5 @@
+{
+  "name":"Blender",
+  "url": "https://www.blender.org/download/",
+  "code": "egrep -o 'https://www.blender.org/download/release/Blender4.4/blender-(\\d+\\.)+\\d+-macos-arm64.dmg' | tail -n 1 | sed 's:www.blender.org/download:mirrors.iu13.net/blender:g'"
+}
