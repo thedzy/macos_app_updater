@@ -1,0 +1,10 @@
+{
+  "name":"Inkscape",
+  "url": "https://inkscape.org/release/all/mac-os-x/dmg-arm64/",
+  "code": "egrep -o '/gallery/item/[0-9]+/Inkscape+[^\"]+dmg' | tail -n 1",
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": false,
+  "blocking_app": "Cyberduck.app",
+  "blocking_app_insensitive": false
+}

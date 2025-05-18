@@ -1,0 +1,8 @@
+{
+  "name":"iTerm2",
+  "url": "https://iterm2.com/downloads.html",
+  "regex": "https://iterm2.com/downloads/stable/iTerm2-\\d+_\\d+_\\d+.zip",
+  "log_level": 4,
+  "verbosity": -1,
+  "log_file": "/var/log/install-iterm2.log"
+}
