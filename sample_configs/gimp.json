@@ -1,10 +1,10 @@
 {
   "name":"Gimp",
   "url": "https://www.gimp.org/downloads/",
-  "code": "egrep -o '[^\"]+gimp/v3.0/macos/gimp-3.0.2-arm64.dmg' |head -n 1 | xargs -I {} echo \"https:{}\"",
+  "code": "egrep -o 'gimp/v3.0/macos/gimp-[0-9\\.]+-arm64.dmg' |head -n 1 | xargs -I {} echo 'https://download.gimp.org/{}'",
   "app_install_path": "/Applications",
   "reinstall": false,
   "run": false,
-  "blocking_app": "Cyberduck.app",
+  "blocking_app": "GIMP.app",
   "blocking_app_insensitive": false
 }
