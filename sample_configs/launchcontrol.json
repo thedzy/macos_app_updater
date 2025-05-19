@@ -1,0 +1,5 @@
+{
+  "name":"LaunchControl",
+  "url": "https://www.soma-zone.com/download",
+  "regex": "[^\"]+LaunchControl-2.8.3.tar.xz"
+}

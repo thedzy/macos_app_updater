@@ -1,0 +1,5 @@
+{
+  "name":"Mactracker",
+  "url": "https://mactracker.ca/",
+  "regex": "[^\"]+\\.zip"
+}

@@ -39,8 +39,8 @@ for json_file in json_files:
 
 # Check if the user wants to include no json files
 if len(json_files) == 0:
-    continue_yn: str = input('Are you sure you wish to include no files (y/n/yes/no): ').strip().lower()
-    if not continue_yn in ('y', 'yes'):
+    continue_yn: str = input('Are you sure you wish to include no files (y/n/yes/no)(default: y): ').strip().lower()
+    if not continue_yn in ('y', 'yes', ''):
         exit()
 
 # Icon to use

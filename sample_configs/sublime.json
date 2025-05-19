@@ -1,0 +1,5 @@
+{
+  "name":"Sublime text",
+  "url": "https://www.sublimetext.com/download_thanks?target=mac",
+  "regex": "[^\"]+mac.zip"
+}

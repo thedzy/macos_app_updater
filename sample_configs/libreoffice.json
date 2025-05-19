@@ -1,0 +1,10 @@
+{
+  "name":"Libre Office",
+  "url": "https://mirror.usi.edu/pub/tdf/libreoffice/stable/",
+  "code": " egrep -o '(\\d+\\.)+\\d+' | sort -V | tail -n 1 | xargs -I {} echo 'https://mirror.usi.edu/pub/tdf/libreoffice/stable/{}/mac/aarch64/LibreOffice_{}_MacOS_aarch64.dmg'",
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_file": null,
+  "blocking_app_insensitive": false
+}
