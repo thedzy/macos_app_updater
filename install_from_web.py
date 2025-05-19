@@ -81,10 +81,20 @@ class CustomRedirectHandler(urllib.request.HTTPRedirectHandler):
     def __init__(self):
         super().__init__()
         self.final_url = None  # Store the final redirected URL
+        self.last_url = None  # Store the last URL (for Referer)
 
     def redirect_request(self, req, fp, code, msg, headers, new_url):
         logger.warning(f'Redirecting to: {new_url}')
         self.final_url = new_url  # Update the final URL
+
+        # Set the Referer header to the previous URL
+        if self.last_url:
+            req.add_header('Referer', self.last_url)
+            logger.debug(f'Setting Referer: {self.last_url}')
+
+        # Update last_url for next redirect
+        self.last_url = req.full_url
+
         return super().redirect_request(req, fp, code, msg, headers, new_url)
 
 
@@ -138,8 +148,15 @@ def main():
         redirect_handler,
         urllib.request.HTTPSHandler(context=ssl_context)
     )
-    opener.addheaders = [('User-Agent', options.user_agent)]  # Ensure headers are preserved
+    opener.addheaders = [
+        ('User-Agent', options.user_agent),
+        ('Sec-Fetch-Site', 'none'),
+        ('Sec-Fetch-Mode', 'navigate'),
+        ('Sec-Fetch-Dest', 'document'),
+        ('Sec-Fetch-User', '?1')
+    ]  # Ensure headers are preserved
 
+    # If regex of code get the html/text
     if any((options.regex, options.code)):
         try:
             # Create the request with custom User-Agent
@@ -153,6 +170,7 @@ def main():
             logger.error(f'Error fetching page: {err}')
             return 5
 
+    # Regex for the term
     if options.regex is not None:
         logger.info(f'Finding download in page "{options.url}" using: "{options.regex}" ...')
 
@@ -168,31 +186,11 @@ def main():
                 logger.error('No matching download URL found.')
                 return 1
 
-            # Ensure the URL has a full schema (http/https) and domain
-            parsed_base: urllib.parse.ParseResult = urlparse(options.url)
-            if not urlparse(download_url).scheme:
-                if download_url.startswith('/'):
-                    # Absolute path (domain only)
-                    download_url: str = f'{parsed_base.scheme}://{parsed_base.netloc}{download_url}'
-                else:
-                    # Relative path (current directory of base URL)
-                    base_path: Path = parsed_base.path.rsplit('/', 1)[0]  # Remove file name
-                    download_url: str = f'{parsed_base.scheme}://{parsed_base.netloc}{base_path}/{download_url}'
-                logger.info(f'Adjusted download URL: {download_url}')
-            matches: Optional[re.Match] = re.search(options.regex, html)
-
-            # Find the link
-            if matches:
-                download_url: str = matches.group()
-                logger.info(f'Found download URL: {download_url}')
-            else:
-                logger.error('No matching download URL found.')
-                return 1
-
         except Exception as err:
             logger.error(f'Error fetching page: {err}')
             return 5
 
+    # Pipe the html into the code
     elif options.code is not None:
         logger.info(f'Finding download in page "{options.url}" using: provided code ...')
 
@@ -234,8 +232,7 @@ def main():
             download_url: str = f'{parsed_base.scheme}://{parsed_base.netloc}{download_url}'
         else:
             # Relative path (current directory of base URL)
-            base_path: Path = parsed_base.path.rsplit('/', 1)[0]  # Remove file name
-            download_url: str = f'{parsed_base.scheme}://{parsed_base.netloc}{base_path}/{download_url}'
+            download_url: str = f'{parsed_base.scheme}://{parsed_base.netloc}{parsed_base.path}/{download_url}'
         logger.info(f'Adjusted download URL: {download_url}')
 
     # Download the install/app
@@ -257,7 +254,7 @@ def main():
         # Download the file
         with opener.open(req_download) as download_response:
             # Get  file name from redirect if no extension from the link
-            if Path(installer_file).suffix is None:
+            if Path(installer_file).suffix is None or Path(installer_file).suffix == '':
                 download_url: str = redirect_handler.final_url if redirect_handler.final_url else download_url
                 installer_file: str = get_filename(download_url)
                 installer_path: Path = Path(temp_folder.name).joinpath(installer_file)
@@ -850,10 +847,13 @@ def export_system_root_certs() -> str:
     Exports macOS system root certificates to a PEM file.
     :return: The path where the PEM file will be.
     """
+    cert: Path = Path('/tmp/certs.ca')
+    if cert.is_file():
+        return cert.as_posix()
+
     try:
         logger.debug(f'Get system certs from keychain')
         # Define the command to export certificates
-        cert: str = tempfile.mktemp()
 
         cmd: list = [
             'security',
@@ -861,7 +861,7 @@ def export_system_root_certs() -> str:
             '-k', '/System/Library/Keychains/SystemRootCertificates.keychain',
             '-t', 'certs',
             '-f', 'pemseq',
-            '-o', cert
+            '-o', cert.as_posix()
         ]
 
         # Execute the command
@@ -877,8 +877,7 @@ def export_system_root_certs() -> str:
     except subprocess.CalledProcessError as e:
         logger.critical(f'Error exporting certificates: {e}')
 
-    return cert
-
+    return cert.as_posix()
 
 
 def create_logger(name: str = __file__, levels: dict = {}) -> logging.Logger:
@@ -1186,10 +1185,6 @@ if __name__ == '__main__':
                     except (ValueError, TypeError) as err:
                         print(f'Warning: Unable to cast {key} ({value}) to {expected_type.__name__}. Error: {err}')
 
-            # Recreate the logger now that we have all the options parsed
-            logger = create_logger()
-            logger.debug('Debug ON')
-
             title = str(json_data['name']) if 'name' in json_data else json_file.stem
             logger.info(title.center(80, '='))
 
@@ -1198,11 +1193,20 @@ if __name__ == '__main__':
             options: argparse.Namespace = argparse.Namespace(**vars(base_options))
             vars(options).update(json_data)
 
+            # Recreate the logger now that we have all the options parsed
+            logger = create_logger()
+            logger.debug('Debug ON')
+            logger.debug(pprint.pformat(options))
+
             # Run installer
             return_code = main()
             if return_code > 0:
                 exit_code = 9
-            logger.info(f'Install exited with {return_code}')
+                logger.warning(f'Install {title} exited with {return_code}')
+            else:
+                logger.info(f'Install {title} exited with {return_code}')
+            atexit._run_exitfuncs()
+
         logger.info(80 * '-')
         sys.exit(exit_code)
     else:
