@@ -38,8 +38,6 @@ from typing import Optional, Any
 from urllib.parse import urlparse
 from xml.etree.ElementTree import ElementTree
 
-from packaging import version
-
 
 class ColourFormat(logging.Formatter):
     """
@@ -376,10 +374,10 @@ def main():
             install: bool = True
         elif not new_version:
             logger.error('Cannot get the new app version')
-        elif version.parse(new_version) > version.parse(old_version):
+        elif version_parse(new_version) > version_parse(old_version):
             logger.info(f'Version to install {new_version} is newer than installed {old_version}.')
             install: bool = True
-        elif version.parse(new_version) < version.parse(old_version):
+        elif version_parse(new_version) < version_parse(old_version):
             logger.info(f'Version to install {new_version} is older than installed {old_version}.')
             if options.allow_downgrade:
                 install: bool = True
@@ -723,7 +721,7 @@ def install_pkg(pkg_path: Path, unpack_path: Path):
             # Iterate over all pkg-ref elements with a version attribute
             for pkg_ref in root.findall('.//pkg-ref[@version]'):
                 package_id = pkg_ref.get('packageIdentifier') or pkg_ref.get('id')
-                version = pkg_ref.get('version')
+                version: tuple = version_parse(pkg_ref.get('version'))
 
                 if not package_id:
                     logger.warning('No package identifier found for this pkg-ref.')
@@ -739,11 +737,11 @@ def install_pkg(pkg_path: Path, unpack_path: Path):
                     check=False
                 )
 
-                installed_version = None
+                installed_version: Optional[tuple] = None
                 if result.returncode == 0:
                     for line in result.stdout.splitlines():
                         if line.startswith('version:'):
-                            installed_version = line.split(':')[1].strip()
+                            installed_version: Optional[tuple] = version_parse(line)  # line.split(':')[1].strip()
                             break
 
                 # Compare versions
@@ -840,6 +838,38 @@ def install_pkg(pkg_path: Path, unpack_path: Path):
 
         except Exception as e:
             logger.error(f'Unexpected error during installation: {e}')
+
+
+def version_parse(version_string: str) -> tuple:
+    """
+    Custom version parsing method that handles:
+    - Numeric versions (1.2.3)
+    - Build versions (Build 4192)
+    - Pre-release versions (alpha, beta, rc)
+    """
+    # Strip leading text (like "Build " or "Version ")
+    version_string = version_string.lstrip('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ- ')
+
+    # Split the version by dots
+    parts = version_string.split('.')
+
+    # Convert numeric parts and handle alpha/beta/rc
+    parsed_version = []
+    for part in parts:
+        if part.isdigit():
+            parsed_version.append(int(part))
+        else:
+            # Handle alpha, beta, rc as tuples (e.g., ('alpha', 1))
+            if 'alpha' in part:
+                parsed_version.append(('alpha', int(part.replace('alpha', '')) if part[-1].isdigit() else 0))
+            elif 'beta' in part:
+                parsed_version.append(('beta', int(part.replace('beta', '')) if part[-1].isdigit() else 0))
+            elif 'rc' in part:
+                parsed_version.append(('rc', int(part.replace('rc', '')) if part[-1].isdigit() else 0))
+            else:
+                parsed_version.append(part)  # Fallback for unexpected values
+
+    return tuple(parsed_version)
 
 
 def export_system_root_certs() -> str:
