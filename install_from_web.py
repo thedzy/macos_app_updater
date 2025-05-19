@@ -400,7 +400,7 @@ def main():
     return 0
 
 
-def is_app_running(app_name: str) -> (bool, str):
+def is_app_running(app_name: str) -> (bool, Optional[str]):
     """
     Checks if the specified app is currently running.
     :param app_name: Name of the app (e.g., 'Terminal')
@@ -442,7 +442,7 @@ def get_filename(url: str) -> str:
     return installer_file
 
 
-def detect_mime_type(file_path: str) -> str:
+def detect_mime_type(file_path: str) -> Optional[str]:
     """
     Detects the MIME type of file using its magic number (file signature).
     :param file_path: The path to the file to detect.
@@ -522,7 +522,6 @@ def mount_dmg(dmg_path: Path, mount_point: Path):
 
     except subprocess.CalledProcessError as err:
         logger.critical(f'Failed to mount DMG. Error: {err.stderr.strip()}')
-        return 5
 
 
 def unmount_dmg(mount_point: Path):
@@ -544,7 +543,7 @@ def unmount_dmg(mount_point: Path):
         logger.info('DMG unmounted')
 
 
-def find_app_path(install_files: Path, pattern: str = '*.app', directory: bool = True) -> Path:
+def find_app_path(install_files: Path, pattern: str = '*.app', directory: bool = True) -> Optional[Path]:
     """
     Finds the first .app/pkg/other within the specified install_files directory.
     :param pattern: File/Directory pattern
@@ -836,13 +835,16 @@ def install_pkg(pkg_path: Path, unpack_path: Path):
             else:
                 logger.error(f'Installation failed with code {result.returncode}:\n{result.stderr}')
 
-        except Exception as e:
-            logger.error(f'Unexpected error during installation: {e}')
+        except Exception as err:
+            logger.error(f'Unexpected error during installation: {err}')
 
 
 def version_parse(version_string: str) -> tuple:
     """
-    Custom version parsing method that handles:
+    Custom version parsing method that handles versions with strings:
+    :param version_string: String representation
+    :return: Tuple representation
+
     - Numeric versions (1.2.3)
     - Build versions (Build 4192)
     - Pre-release versions (alpha, beta, rc)
