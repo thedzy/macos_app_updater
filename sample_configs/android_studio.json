@@ -1,0 +1,6 @@
+{
+  "name":"Android Studio",
+  "url": "https://developer.android.com/studio?_gl=1",
+  "regex": "https:[/\\.0-9A-z\\-]+mac_arm.dmg",
+  "user_agent": "curl/7.79.1"
+}
