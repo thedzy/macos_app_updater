@@ -130,7 +130,7 @@ Error codes:
 ```
 
 Examples:
-```
+```bash
 # 1Password pkg and app
 install_from_web.py --url 'https://downloads.1password.com/mac/1Password.pkg'
 install_from_web.py --url 'https://downloads.1password.com/mac/1Password.zip' --reinstall --app-location /tmp --run
