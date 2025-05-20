@@ -34,14 +34,18 @@
 Detailed documentation is available on the [GitHub Wiki](https://github.com/thedzy/macos_app_updater/wiki).
 
 ### 📖 Table of Contents
-- [Introduction](https://github.com/thedzy/macos_app_updater/wiki)
-- [Getting Started](https://github.com/thedzy/macos_app_updater/wiki/Getting-Started)
-- [Configuration Options](https://github.com/thedzy/macos_app_updater/wiki/Configuration)
+- [Introduction](https://github.com/thedzy/macos_app_updater/wiki/Introduction)
+- [Use Cases](https://github.com/thedzy/macos_app_updater/wiki/Use-Case)
+- [Build Instructions](https://github.com/thedzy/macos_app_updater/wiki/Build)
+- [Configuration File Format](https://github.com/thedzy/macos_app_updater/wiki/Configuration-File-Format)
+- [Basic Usage](https://github.com/thedzy/macos_app_updater/wiki/Basic-Usage)
+- [Install Type Options](https://github.com/thedzy/macos_app_updater/wiki/Install-Type-Options)
+- [Installation Destinations](https://github.com/thedzy/macos_app_updater/wiki/Install-Destinations-Options)
+- [Extended Options](https://github.com/thedzy/macos_app_updater/wiki/Extended-Options)
 - [Advanced Options](https://github.com/thedzy/macos_app_updater/wiki/Advanced-Options)
-- [Usage Examples](https://github.com/thedzy/macos_app_updater/wiki/Usage)
-- [Contributing](https://github.com/thedzy/macos_app_updater/wiki/Contributing)
 - [Troubleshooting](https://github.com/thedzy/macos_app_updater/wiki/Troubleshooting)
-- [Changelog](https://github.com/thedzy/macos_app_updater/wiki/Changelog)
+- [Changelog](https://github.com/thedzy/macos_app_updater/wiki/Version-History)
+- [Contributing Guide](https://github.com/thedzy/macos_app_updater/wiki/Contributing)
 
 ---
 
