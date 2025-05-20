@@ -1,76 +1,48 @@
 # macos_app_updater
 
+## 🚀 Overview
 
-## Overview
+`macos_app_updater` is a versatile, feature-rich script designed to simplify the process of downloading, installing, updating, and managing macOS applications directly from the web. It is designed to provide a flexible solution that allows anyone to create configuration files or specify options for automating application updates—whether for personal use, sharing, or enterprise environments. This tool is ideal for system administrators, MDM environments, or any user who wants to keep their macOS software up to date with minimal effort.
 
-`install_from_web.py` is a versatile, feature-rich script designed to simplify the process of downloading, installing, updating, and managing macOS applications directly from the web. It was created to provide a flexible solution that allows anyone to create configuration files or specify options for automating application updates—whether for personal use, sharing, or enterprise environments. This tool is ideal for system administrators, MDM environments, or any user who wants to keep their macOS software up to date with minimal effort. It supports a wide range of package types, robust version detection, and automated actions based on specified conditions.
+### 📌 Key Features
+- Supports multiple package types: **PKG**, **DMG**, **ZIP**, and **TAR**.
+- Automatically detects package type using file extension, MIME type, or file signature.
+- Smart version detection and comparison:
+  - Only installs if the new version is newer (unless forced).
+- Flexible installation logic:
+  - Customizable installation paths for applications and packages.
+  - Configurable blocking conditions (apps, files).
+  - Supports automatic reinstallation and downgrades.
+- Advanced configuration with JSON files:
+  - Multiple JSON configurations for batch installations.
+- Logging and debugging:
+  - Verbose logging with customizable verbosity levels.
+  - Configurable log file output.
 
-### Supported Package Types
-- **PKG (Package Files):** Standard macOS installation packages, including flat PKGs and distribution PKGs.
-- **DMG (Disk Images):** Mounted automatically, with applications extracted and installed.
-- **ZIP Archives:** Extracted automatically, with applications or installation packages processed.
-- **TAR Archives:** Automatically extracted, including tar.gz and tar.bz2 formats.
+---
 
-### Intelligent Version Detection
-- The script can detect and compare versions of existing applications against the newly downloaded version:
-  - **DMG Applications:** Reads `Info.plist` for `CFBundleShortVersionString`.
-  - **PKG Packages:** Reads the version directly from the `Distribution` or `PackageInfo` file.
-  - **ZIP and TAR Archives:** Extracts and inspects version information based on the contents.
-- Automatically detects if the installed version is newer, older, or identical, and takes action based on user settings.
+## TL;DR?
 
-### Automatic Package Type Detection
-- If the user does not specify the package type, the script intelligently determines the type using:
-  - User-provided type (if specified).
-  - File extension (e.g., `.dmg`, `.pkg`, `.zip`, `.tar`).
-  - MIME type detection (using file headers).
-  - Magic number (file signature) detection for robust identification.
+1. Downloads the file or page.
+2. Finds the download link (using regex or custom code if needed).
+3. Detects file type automatically.
+4. Checks the version.
+5. Installs or updates only if necessary.
+---
 
-### Automated Installation and Updating
-- Downloads the application or package from the specified URL.
-- Automatically determines the most suitable installation method based on the package type:
-- Verifies the version of the existing installation and only updates if:
-  - The new version is newer.
-  - The new version is different and `--reinstall` is specified.
-  - The new version is older, but `--allow-downgrade` is specified.
+## 📚 Documentation
+Detailed documentation is available on the [GitHub Wiki](https://github.com/thedzy/macos_app_updater/wiki).
 
-### Flexible Customization and Control
-- Supports specifying installation paths for both applications and packages.
-- Allows blocking installations if specified applications are running (`--blocking-app`) or files/directories exist (`--blocking-file`).
-- Can be configured to only install if specific files exist (`--required-file`).
-- Offers advanced options for custom user agents (`--user-agent`) and custom download parsing:
-  - Regular expression-based extraction (`--regex`).
-  - Custom shell code for complex parsing (`--code`).
+### 📖 Table of Contents
+- [Introduction](https://github.com/thedzy/macos_app_updater/wiki)
+- [Getting Started](https://github.com/thedzy/macos_app_updater/wiki/Getting-Started)
+- [Configuration Options](https://github.com/thedzy/macos_app_updater/wiki/Configuration)
+- [Advanced Options](https://github.com/thedzy/macos_app_updater/wiki/Advanced-Options)
+- [Usage Examples](https://github.com/thedzy/macos_app_updater/wiki/Usage)
+- [Contributing](https://github.com/thedzy/macos_app_updater/wiki/Contributing)
+- [Troubleshooting](https://github.com/thedzy/macos_app_updater/wiki/Troubleshooting)
+- [Changelog](https://github.com/thedzy/macos_app_updater/wiki/Changelog)
 
-### Logging and Debugging
-- Verbose logging with customizable verbosity levels.
-- Supports saving logs to a file (`--log LOG_FILE`).
-
-### Bulk Configuration with JSON Files
-- Multiple configurations can be processed using JSON files placed in the same directory as the script.
-- Each JSON file can define an installation, including all available options:
-  - URL, regex, code, file type, installation paths, blocking conditions, etc.
-- This allows for bulk management and deployment of multiple applications in one run.
-
-### Designed for Automation and Integration
-- Can be run as a standalone script
-- Cnn be compiled into a standalone binary for easy distribution.
-- Cnn be compiled into a standalone application.
-- Cnn be compiled into a standalone pkg.
-- Ideal for use in MDM environments, allowing automated, policy-based installation and updating.
-- Can be easily integrated into scripts or automated workflows.
-
-### Why Use This Script?
-- Simplifies software management for macOS systems.
-- Avoids unnecessary user interruptions by only installing or updating when needed.
-- Ensures that applications are always up to date, without manual intervention.
-- Supports advanced use cases like custom download extraction methods and bulk installations.
-- Fully compatible with MDM environments, making it ideal for enterprise deployments.
-
-### Who is it For?
-- System administrators managing multiple macOS systems.
-- Advanced users who prefer automation over manual installation.
-- MDM administrators who need a flexible, scriptable way to manage application installations.
-- Anyone who wants to keep their macOS software up to date effortlessly.
 ---
 
 ## Usage
@@ -247,18 +219,8 @@ pyinstaller -y /Users/syoung/git/macos_app_updater/installer_app.spec
 
 ## Build python independent pkg that can include multiple config for updating and installing
 ```
-pyinstaller -y /Users/syoung/git/macos_app_updater/installer_app.spec
+./make_pkg_installer.sh
 ```
-
-
-
-## TL;DR?
-
-1. Downloads the file or page.
-2. Finds the download link (using regex or custom code if needed).
-3. Detects file type automatically.
-4. Checks the version.
-5. Installs or updates only if necessary.
 
 
 ## Why?
@@ -267,44 +229,7 @@ Maintaining software in macOS MDMs can be challenging. This script ensures that 
 
 Most importantly, it is fully user-configurable—no dependency on anyone else to update configurations or set options tailored to your needs.
 
-## Improvements?
-
-github url specific downloading
-
 
 ## State?
 
 No known bugs. Works.
-
-## New
-
-### 1.0
-
-- Supports installation of multiple package types:
-  - **ZIP**, **TAR**, **DMG**, and **PKG**.
-- Automatic file type detection:
-  - MIME type analysis.
-  - File signature detection (first 16 bytes).
-  - User-specified file type as an override.
-- Comprehensive version validation:
-  - Reads version from `Distribution` and `PackageInfo` in PKG files.
-  - Reads version from `Info.plist` for macOS apps.
-  - Custom version parsing for complex version formats.
-- Configurable installation paths:
-  - Separate paths for PKG and APP installations.
-- Automated installation logic:
-  - Installs only if newer version is detected.
-  - Optional forced reinstallation.
-  - Supports downgrades if explicitly allowed.
-- Advanced blocking conditions:
-  - Can block installation if a specified app is running.
-  - Can block if a specified file exists.
-  - Can require a specified file to exist.
-- Enhanced logging:
-  - Configurable log file and verbosity levels.
-  - Colour-coded console logging.
-- JSON configuration support:
-  - Load multiple JSON configurations for batch installations.
-- Secure HTTPS downloading:
-  - Custom SSL context with system root certificates.
-- Regex and shell command support for dynamic download link detection.
