@@ -1,0 +1,10 @@
+{
+  "name":"DBeaver",
+  "url": "https://dbeaver.io/files/dbeaver-ce-latest-macos.dmg",
+  "regex": null,
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": true,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

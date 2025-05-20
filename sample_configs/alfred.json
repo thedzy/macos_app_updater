@@ -1,0 +1,10 @@
+{
+  "name":"Alfred",
+  "url": "https://www.alfredapp.com/",
+  "regex": "https://cachefly.alfredapp.com/Alfred_5.([0-9_]+\\.)+dmg",
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": true,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

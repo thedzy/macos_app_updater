@@ -1,0 +1,10 @@
+{
+  "name":"Easy Find",
+  "url": "https://www.devontechnologies.com/apps/freeware",
+  "regex": "https://download.devontechnologies.com/download/freeware/easyfind/[0-9\\.]+/EasyFind.app.zip",
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

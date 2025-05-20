@@ -1,0 +1,6 @@
+{
+  "name":"Virtual Box",
+  "url": "https://www.virtualbox.org/wiki/Downloads",
+  "regex": "https://download.virtualbox.org/virtualbox/[0-9\\.]+/VirtualBox-[0-9\\.-]+-macOSArm64.dmg",
+  "blocking_app": "VirtualBox.app"
+}

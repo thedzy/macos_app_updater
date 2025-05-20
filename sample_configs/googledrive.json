@@ -1,0 +1,9 @@
+{
+  "name":"Google Drive Desktop",
+  "url": "https://dl.google.com/drive-file-stream/GoogleDrive.dmg",
+  "regex": null,
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

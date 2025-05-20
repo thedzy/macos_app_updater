@@ -1,0 +1,10 @@
+{
+  "name":"Audacity",
+  "url": "https://www.audacityteam.org/download/mac/",
+  "regex": "https://github.com/audacity/audacity/releases/download/Audacity-[0-9\\.]+/audacity-macOS-[0-9\\.]+-universal.pkg",
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

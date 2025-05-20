@@ -1,0 +1,5 @@
+{
+  "name":"Loom",
+  "url": "https://packages.loom.com/desktop-packages/latest-mac.yml",
+  "code": "egrep -o 'Loom-[0-9\\.]+-arm64.dmg' | xargs -I {} echo 'https://cdn.loom.com/desktop-packages/{}'"
+}

@@ -1,0 +1,9 @@
+{
+  "name":"Daisy Disk",
+  "url": "https://daisydiskapp.com/downloads/DaisyDisk.zip",
+  "regex": null,
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

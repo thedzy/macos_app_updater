@@ -1,0 +1,10 @@
+{
+  "name":"1 Password package install",
+  "url": "https://downloads.1password.com/mac/1Password.pkg",
+  "regex": null,
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_file": null,
+  "blocking_app_insensitive": false
+}

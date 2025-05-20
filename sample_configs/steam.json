@@ -1,0 +1,10 @@
+{
+  "name":"Steam",
+  "url": "https://cdn.fastly.steamstatic.com/client/installer/steam.dmg",
+  "regex": null,
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": true,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

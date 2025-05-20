@@ -1,0 +1,10 @@
+{
+  "name":"VLC",
+  "url": "https://mirror.xenyth.net/videolan/vlc/last/macosx/",
+  "regex": "[^\"]+arm64.dmg",
+  "app_install_path": "/Applications",
+  "reinstall": false,
+  "run": false,
+  "blocking_app": null,
+  "blocking_app_insensitive": false
+}

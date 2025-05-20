@@ -1,0 +1,8 @@
+{
+  "name":"Wireshark",
+  "url": "https://www.wireshark.org/download.html",
+  "regex": "[^\"]+Arm%2064.dmg",
+  "log_level": 4,
+  "verbosity": -1,
+  "log_file": null
+}

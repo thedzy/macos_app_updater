@@ -1,0 +1,6 @@
+{
+  "name":"Node.js",
+  "url": "https://nodejs.org/dist/latest/",
+  "regex": "/dist/latest/node-v(\\d+\\.)+pkg",
+  "blocking_app": "Zoom.app"
+}

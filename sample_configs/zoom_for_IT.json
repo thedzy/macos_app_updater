@@ -1,0 +1,6 @@
+{
+  "name":"Zoom for IT",
+  "url": "https://zoom.us/client/latest/ZoomInstallerIT.pkg",
+  "blocking_app": "Zoom.app",
+  "Comment": " It includes tools for installing Zoom on multiple devices, configuring settings, managing user access, and controlling which apps are available within the Zoom platform."
+}
